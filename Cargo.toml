@@ -1,0 +1,57 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+authors = ["Donald “chronos” King <chronos@chronos-tachyon.net>"]
+license = "Hippocratic-2.1"
+
+[workspace.dependencies]
+dandelion-macros = { path = "crates/dandelion-macros", version = "0.1.0" }
+dandelion-proto = { path = "crates/dandelion-proto", version = "0.1.0" }
+dandelion-wit = { path = "crates/dandelion-wit", version = "0.1.0" }
+dandelion-host-wit = { path = "crates/dandelion-host-wit", version = "0.1.0" }
+dandelion-types = { path = "crates/dandelion-types", version = "0.1.0" }
+dandelion-wire = { path = "crates/dandelion-wire", version = "0.1.0" }
+blake2s_simd = { version = "1.0.2", default-features = false }
+bytes = { version = "1.7.1", default-features = false }
+chacha20poly1305 = { version = "0.10.1", default-features = false, features = ["alloc"] }
+constant_time_eq = { version = "0.3.0", default-features = false }
+ed25519-dalek = { version = "2.1.1", default-features = false, features = ["zeroize"] }
+hkdf = { version = "0.12.4", default-features = false }
+hmac = { version = "0.12.1", default-features = false }
+proc-macro2 = { version = "1.0.86" }
+prost = { version = "0.13.1", default-features = false, features = ["derive"] }
+prost-build = { version = "0.13.1" }
+prost-types = { version = "0.13.1", default-features = false }
+protox = { version = "0.7.0" }
+quote = { version = "1.0.36" }
+secrecy = { version = "0.8.0", default-features = false, features = ["alloc"] }
+sha2 = { version = "0.10.8", default-features = false }
+syn = { version = "2.0.72" }
+wasmtime = { version = "23.0.1", default-features = false, features = ["component-model", "runtime", "cranelift", "async", "threads"] }
+wit-bindgen = { version = "0.28.0" }
+x25519-dalek = { version = "2.0.1", default-features = false, features = ["zeroize", "static_secrets"] }
+zeroize = { version = "1.8.1", default-features = false }
+
+[profile.release]
+codegen-units = 1
+opt-level = "s"
+debug = false
+strip = true
+lto = true
+
+[package]
+name = "dandelion"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+dandelion-wire.workspace = true
+
+[[bin]]
+name = "dandelion"

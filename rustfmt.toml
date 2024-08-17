@@ -1,0 +1,8 @@
+group_imports = "StdExternalCrate"
+imports_layout = "HorizontalVertical"
+imports_granularity = "Crate"
+use_small_heuristics = "Max"
+empty_item_single_line = true
+match_block_trailing_comma = true
+overflow_delimited_expr = true
+use_field_init_shorthand = true
