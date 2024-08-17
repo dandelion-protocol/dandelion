@@ -6,7 +6,7 @@ members = ["crates/*"]
 edition = "2021"
 version = "0.1.0"
 authors = ["Donald “chronos” King <chronos@chronos-tachyon.net>"]
-license = "Hippocratic-2.1"
+license = "GPL-3.0-only OR Hippocratic-2.1"
 
 [workspace.dependencies]
 #dandelion-macros = { path = "crates/dandelion-macros", version = "0.1.0" }
