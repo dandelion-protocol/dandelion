@@ -9,11 +9,11 @@ authors = ["Donald “chronos” King <chronos@chronos-tachyon.net>"]
 license = "Hippocratic-2.1"
 
 [workspace.dependencies]
-dandelion-macros = { path = "crates/dandelion-macros", version = "0.1.0" }
-dandelion-proto = { path = "crates/dandelion-proto", version = "0.1.0" }
-dandelion-wit = { path = "crates/dandelion-wit", version = "0.1.0" }
-dandelion-host-wit = { path = "crates/dandelion-host-wit", version = "0.1.0" }
-dandelion-types = { path = "crates/dandelion-types", version = "0.1.0" }
+#dandelion-macros = { path = "crates/dandelion-macros", version = "0.1.0" }
+#dandelion-proto = { path = "crates/dandelion-proto", version = "0.1.0" }
+#dandelion-wit = { path = "crates/dandelion-wit", version = "0.1.0" }
+#dandelion-host-wit = { path = "crates/dandelion-host-wit", version = "0.1.0" }
+#dandelion-types = { path = "crates/dandelion-types", version = "0.1.0" }
 dandelion-wire = { path = "crates/dandelion-wire", version = "0.1.0" }
 blake2s_simd = { version = "1.0.2", default-features = false }
 bytes = { version = "1.7.1", default-features = false }
