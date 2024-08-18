@@ -62,13 +62,13 @@ impl Priority {
 }
 
 impl BaseSerializable for Priority {
-    fn wire_write(&self, buffer: &mut impl BufMut) {
+    fn wire_write(&self, buffer: &mut dyn BufMut) {
         self.code().wire_write(buffer);
     }
-    fn wire_read(buffer: &mut impl Buf) -> Result<Self> {
+    fn wire_read(buffer: &mut dyn Buf) -> Result<Self> {
         Ok(Self::from_code(u8::wire_read(buffer)?)?)
     }
-    fn wire_skip(buffer: &mut impl Buf) -> Result<()> {
+    fn wire_skip(buffer: &mut dyn Buf) -> Result<()> {
         u8::wire_skip(buffer)
     }
 }

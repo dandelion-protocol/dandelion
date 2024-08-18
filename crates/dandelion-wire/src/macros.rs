@@ -127,18 +127,18 @@ macro_rules! public_bytes {
 
         #[allow(unused_imports)]
         impl dandelion_wire::BaseSerializable for $ty {
-            fn wire_write(&self, buffer: &mut impl dandelion_wire::bytes::BufMut) {
+            fn wire_write(&self, buffer: &mut dyn dandelion_wire::bytes::BufMut) {
                 use dandelion_wire::{BaseSerializable, PublicBytes};
                 self.as_exact().wire_write(buffer);
             }
             fn wire_read(
-                buffer: &mut impl dandelion_wire::bytes::Buf,
+                buffer: &mut dyn dandelion_wire::bytes::Buf,
             ) -> dandelion_wire::Result<Self> {
                 use dandelion_wire::{BaseSerializable, PublicBytes};
                 Ok(Self::from_exact($raw::wire_read(buffer)?))
             }
             fn wire_skip(
-                buffer: &mut impl dandelion_wire::bytes::Buf,
+                buffer: &mut dyn dandelion_wire::bytes::Buf,
             ) -> dandelion_wire::Result<()> {
                 use dandelion_wire::BaseSerializable;
                 $raw::wire_skip(buffer)
@@ -287,13 +287,13 @@ macro_rules! public_bytes {
 macro_rules! impl_serializable_todo {
     ( $ty:ty ) => {
         impl dandelion_wire::BaseSerializable for $ty {
-            fn wire_write(&self, _: &mut impl dandelion_wire::bytes::BufMut) {
+            fn wire_write(&self, _: &mut dyn dandelion_wire::bytes::BufMut) {
                 todo!()
             }
-            fn wire_read(_: &mut impl dandelion_wire::bytes::Buf) -> dandelion_wire::Result<Self> {
+            fn wire_read(_: &mut dyn dandelion_wire::bytes::Buf) -> dandelion_wire::Result<Self> {
                 todo!()
             }
-            fn wire_skip(_: &mut impl dandelion_wire::bytes::Buf) -> dandelion_wire::Result<()> {
+            fn wire_skip(_: &mut dyn dandelion_wire::bytes::Buf) -> dandelion_wire::Result<()> {
                 todo!()
             }
         }
@@ -309,16 +309,16 @@ macro_rules! impl_serializable_todo {
 macro_rules! impl_serializable_for_wrapper {
     ( $ty:ty, wraps $inner:ty, fixed size ) => {
         impl dandelion_wire::BaseSerializable for $ty {
-            fn wire_write(&self, buffer: &mut impl dandelion_wire::bytes::BufMut) {
+            fn wire_write(&self, buffer: &mut dyn dandelion_wire::bytes::BufMut) {
                 self.0.wire_write(buffer)
             }
             fn wire_read(
-                buffer: &mut impl dandelion_wire::bytes::Buf,
+                buffer: &mut dyn dandelion_wire::bytes::Buf,
             ) -> dandelion_wire::Result<Self> {
                 Ok(Self(<$inner>::wire_read(buffer)?))
             }
             fn wire_skip(
-                buffer: &mut impl dandelion_wire::bytes::Buf,
+                buffer: &mut dyn dandelion_wire::bytes::Buf,
             ) -> dandelion_wire::Result<()> {
                 <$inner>::wire_skip(buffer)?;
                 Ok(())
@@ -330,16 +330,16 @@ macro_rules! impl_serializable_for_wrapper {
     };
     ( $ty:ty, wraps $inner:ty ) => {
         impl dandelion_wire::BaseSerializable for $ty {
-            fn wire_write(&self, buffer: &mut impl dandelion_wire::bytes::BufMut) {
+            fn wire_write(&self, buffer: &mut dyn dandelion_wire::bytes::BufMut) {
                 self.0.wire_write(buffer)
             }
             fn wire_read(
-                buffer: &mut impl dandelion_wire::bytes::Buf,
+                buffer: &mut dyn dandelion_wire::bytes::Buf,
             ) -> dandelion_wire::Result<Self> {
                 Ok(Self(<$inner>::wire_read(buffer)?))
             }
             fn wire_skip(
-                buffer: &mut impl dandelion_wire::bytes::Buf,
+                buffer: &mut dyn dandelion_wire::bytes::Buf,
             ) -> dandelion_wire::Result<()> {
                 <$inner>::wire_skip(buffer)?;
                 Ok(())
@@ -357,15 +357,15 @@ macro_rules! impl_serializable_for_wrapper {
 macro_rules! impl_serializable_for_struct {
     ( $ty:ty { $( $field:ident : $field_ty:ty ),* $(,)? }, fixed size ) => {
         impl dandelion_wire::BaseSerializable for $ty {
-            fn wire_write(&self, buffer: &mut impl dandelion_wire::bytes::BufMut) {
+            fn wire_write(&self, buffer: &mut dyn dandelion_wire::bytes::BufMut) {
                 $( self.$field.wire_write(buffer); )*
             }
-            fn wire_read(buffer: &mut impl dandelion_wire::bytes::Buf) -> dandelion_wire::Result<Self> {
+            fn wire_read(buffer: &mut dyn dandelion_wire::bytes::Buf) -> dandelion_wire::Result<Self> {
                 Ok(Self {
                     $( $field: <$field_ty>::wire_read(buffer)?, )*
                 })
             }
-            fn wire_skip(buffer: &mut impl dandelion_wire::bytes::Buf) -> dandelion_wire::Result<()> {
+            fn wire_skip(buffer: &mut dyn dandelion_wire::bytes::Buf) -> dandelion_wire::Result<()> {
                 $( <$field_ty>::wire_skip(buffer)?; )*
                 Ok(())
             }
@@ -376,15 +376,15 @@ macro_rules! impl_serializable_for_struct {
     };
     ( $ty:ty { $( $field:ident : $field_ty:ty ),* $(,)? } ) => {
         impl dandelion_wire::BaseSerializable for $ty {
-            fn wire_write(&self, buffer: &mut impl dandelion_wire::bytes::BufMut) {
+            fn wire_write(&self, buffer: &mut dyn dandelion_wire::bytes::BufMut) {
                 $( self.$field.wire_write(buffer); )*
             }
-            fn wire_read(buffer: &mut impl dandelion_wire::bytes::Buf) -> dandelion_wire::Result<Self> {
+            fn wire_read(buffer: &mut dyn dandelion_wire::bytes::Buf) -> dandelion_wire::Result<Self> {
                 Ok(Self {
                     $( $field: <$field_ty>::wire_read(buffer)?, )*
                 })
             }
-            fn wire_skip(buffer: &mut impl dandelion_wire::bytes::Buf) -> dandelion_wire::Result<()> {
+            fn wire_skip(buffer: &mut dyn dandelion_wire::bytes::Buf) -> dandelion_wire::Result<()> {
                 $( <$field_ty>::wire_skip(buffer)?; )*
                 Ok(())
             }

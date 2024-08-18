@@ -8,11 +8,11 @@ use super::{
 };
 
 pub trait BaseSerializable: Sized {
-    fn wire_write(&self, buffer: &mut impl BufMut);
-    fn wire_read(buffer: &mut impl Buf) -> Result<Self>;
-    fn wire_skip(buffer: &mut impl Buf) -> Result<()>;
+    fn wire_write(&self, buffer: &mut dyn BufMut);
+    fn wire_read(buffer: &mut dyn Buf) -> Result<Self>;
+    fn wire_skip(buffer: &mut dyn Buf) -> Result<()>;
 
-    fn wire_skip_many(buffer: &mut impl Buf, count: usize) -> Result<()> {
+    fn wire_skip_many(buffer: &mut dyn Buf, count: usize) -> Result<()> {
         util::generic_skip_many::<Self>(buffer, count)
     }
 }
@@ -20,7 +20,7 @@ pub trait BaseSerializable: Sized {
 pub trait FixedSizeSerializable: BaseSerializable {
     const WIRE_SIZE: usize;
 
-    fn wire_skip_many(buffer: &mut impl Buf, count: usize) -> Result<()> {
+    fn wire_skip_many(buffer: &mut dyn Buf, count: usize) -> Result<()> {
         if let Some(len) = Self::WIRE_SIZE.checked_mul(count) {
             util::generic_skip(buffer, len)
         } else {
@@ -40,13 +40,13 @@ impl<T: FixedSizeSerializable> Serializable for T {
 }
 
 impl BaseSerializable for BytesMut {
-    fn wire_write(&self, buffer: &mut impl BufMut) {
+    fn wire_write(&self, buffer: &mut dyn BufMut) {
         util::varlen_write(buffer, self.as_ref());
     }
-    fn wire_read(buffer: &mut impl Buf) -> Result<Self> {
+    fn wire_read(buffer: &mut dyn Buf) -> Result<Self> {
         util::varlen_read(buffer)
     }
-    fn wire_skip(buffer: &mut impl Buf) -> Result<()> {
+    fn wire_skip(buffer: &mut dyn Buf) -> Result<()> {
         util::varlen_skip(buffer)?;
         Ok(())
     }
@@ -59,13 +59,13 @@ impl Serializable for BytesMut {
 }
 
 impl BaseSerializable for Bytes {
-    fn wire_write(&self, buffer: &mut impl BufMut) {
+    fn wire_write(&self, buffer: &mut dyn BufMut) {
         util::varlen_write(buffer, self.as_ref());
     }
-    fn wire_read(buffer: &mut impl Buf) -> Result<Self> {
+    fn wire_read(buffer: &mut dyn Buf) -> Result<Self> {
         Ok(Bytes::from(util::varlen_read(buffer)?))
     }
-    fn wire_skip(buffer: &mut impl Buf) -> Result<()> {
+    fn wire_skip(buffer: &mut dyn Buf) -> Result<()> {
         util::varlen_skip(buffer)?;
         Ok(())
     }
@@ -78,13 +78,13 @@ impl Serializable for Bytes {
 }
 
 impl<T: Serializable> BaseSerializable for Vec<T> {
-    fn wire_write(&self, buffer: &mut impl BufMut) {
+    fn wire_write(&self, buffer: &mut dyn BufMut) {
         self.len().wire_write(buffer);
         for item in self {
             item.wire_write(buffer);
         }
     }
-    fn wire_read(buffer: &mut impl Buf) -> Result<Self> {
+    fn wire_read(buffer: &mut dyn Buf) -> Result<Self> {
         let count = usize::wire_read(buffer)?;
         let mut vec = Vec::with_capacity(count);
         for _ in 0..count {
@@ -92,7 +92,7 @@ impl<T: Serializable> BaseSerializable for Vec<T> {
         }
         Ok(vec)
     }
-    fn wire_skip(buffer: &mut impl Buf) -> Result<()> {
+    fn wire_skip(buffer: &mut dyn Buf) -> Result<()> {
         let count = usize::wire_read(buffer)?;
         T::wire_skip_many(buffer, count)
     }
@@ -109,11 +109,11 @@ impl<T: Serializable> Serializable for Vec<T> {
 }
 
 impl BaseSerializable for () {
-    fn wire_write(&self, _: &mut impl BufMut) {}
-    fn wire_read(_: &mut impl Buf) -> Result<Self> {
+    fn wire_write(&self, _: &mut dyn BufMut) {}
+    fn wire_read(_: &mut dyn Buf) -> Result<Self> {
         Ok(())
     }
-    fn wire_skip(_: &mut impl Buf) -> Result<()> {
+    fn wire_skip(_: &mut dyn Buf) -> Result<()> {
         Ok(())
     }
 }
@@ -123,13 +123,13 @@ impl FixedSizeSerializable for () {
 }
 
 impl<const N: usize> BaseSerializable for [u8; N] {
-    fn wire_write(&self, buffer: &mut impl BufMut) {
+    fn wire_write(&self, buffer: &mut dyn BufMut) {
         util::fixed_write::<N>(buffer, self)
     }
-    fn wire_read(buffer: &mut impl Buf) -> Result<Self> {
+    fn wire_read(buffer: &mut dyn Buf) -> Result<Self> {
         util::fixed_read::<N>(buffer)
     }
-    fn wire_skip(buffer: &mut impl Buf) -> Result<()> {
+    fn wire_skip(buffer: &mut dyn Buf) -> Result<()> {
         util::fixed_skip::<N>(buffer)
     }
 }
@@ -141,16 +141,16 @@ impl<const N: usize> FixedSizeSerializable for [u8; N] {
 macro_rules! numtype {
     ( $ty:ty, $size:expr, $put:ident, $get:ident ) => {
         impl BaseSerializable for $ty {
-            fn wire_write(&self, buffer: &mut impl BufMut) {
+            fn wire_write(&self, buffer: &mut dyn BufMut) {
                 buffer.$put(*self);
             }
-            fn wire_read(buffer: &mut impl Buf) -> Result<Self> {
+            fn wire_read(buffer: &mut dyn Buf) -> Result<Self> {
                 if buffer.remaining() < Self::WIRE_SIZE {
                     return Err(Error);
                 }
                 Ok(buffer.$get())
             }
-            fn wire_skip(buffer: &mut impl Buf) -> Result<()> {
+            fn wire_skip(buffer: &mut dyn Buf) -> Result<()> {
                 const WIRE_SIZE: usize = $size;
                 util::fixed_skip::<WIRE_SIZE>(buffer)
             }
@@ -179,13 +179,13 @@ numtype!(f64, 8, put_f64, get_f64);
 macro_rules! thunktype {
     ( $ty:ty => $repr:ty, $to_repr:path, $from_repr:path ) => {
         impl BaseSerializable for $ty {
-            fn wire_write(&self, buffer: &mut impl BufMut) {
+            fn wire_write(&self, buffer: &mut dyn BufMut) {
                 $to_repr(*self).wire_write(buffer);
             }
-            fn wire_read(buffer: &mut impl Buf) -> Result<Self> {
+            fn wire_read(buffer: &mut dyn Buf) -> Result<Self> {
                 Ok($from_repr(<$repr>::wire_read(buffer)?)?)
             }
-            fn wire_skip(buffer: &mut impl Buf) -> Result<()> {
+            fn wire_skip(buffer: &mut dyn Buf) -> Result<()> {
                 <$repr>::wire_skip(buffer)
             }
         }

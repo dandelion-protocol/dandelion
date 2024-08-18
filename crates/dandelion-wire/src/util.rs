@@ -25,12 +25,12 @@ pub fn nested_wire_size(inner: &impl Serializable) -> usize {
     varlen_wire_size(inner.wire_size())
 }
 
-pub fn nested_write(buffer: &mut impl BufMut, inner: &impl Serializable) {
+pub fn nested_write(buffer: &mut dyn BufMut, inner: &impl Serializable) {
     let payload = serialize(inner);
     varlen_write(buffer, payload.as_ref());
 }
 
-pub fn nested_read<T: Serializable>(buffer: &mut impl Buf) -> Result<T> {
+pub fn nested_read<T: Serializable>(buffer: &mut dyn Buf) -> Result<T> {
     let payload = varlen_read(buffer)?;
     deserialize::<T>(Bytes::from(payload))
 }
@@ -39,17 +39,17 @@ pub const fn varlen_wire_size(len: usize) -> usize {
     usize::WIRE_SIZE.strict_add(len)
 }
 
-pub fn varlen_write(buffer: &mut impl BufMut, value: &[u8]) {
+pub fn varlen_write(buffer: &mut dyn BufMut, value: &[u8]) {
     value.len().wire_write(buffer);
     buffer.put_slice(value);
 }
 
-pub fn varlen_fill(buffer: &mut impl BufMut, value: u8, count: usize) {
+pub fn varlen_fill(buffer: &mut dyn BufMut, value: u8, count: usize) {
     count.wire_write(buffer);
     buffer.put_bytes(value, count);
 }
 
-pub fn varlen_read(buffer: &mut impl Buf) -> Result<BytesMut> {
+pub fn varlen_read(buffer: &mut dyn Buf) -> Result<BytesMut> {
     let len = usize::wire_read(buffer)?;
     if buffer.remaining() < len {
         return Err(Error);
@@ -59,17 +59,17 @@ pub fn varlen_read(buffer: &mut impl Buf) -> Result<BytesMut> {
     Ok(value)
 }
 
-pub fn varlen_skip(buffer: &mut impl Buf) -> Result<usize> {
+pub fn varlen_skip(buffer: &mut dyn Buf) -> Result<usize> {
     let len = usize::wire_read(buffer)?;
     generic_skip(buffer, len)?;
     Ok(len)
 }
 
-pub fn fixed_write<const N: usize>(buffer: &mut impl BufMut, value: &[u8; N]) {
+pub fn fixed_write<const N: usize>(buffer: &mut dyn BufMut, value: &[u8; N]) {
     buffer.put_slice(value);
 }
 
-pub fn fixed_read<const N: usize>(buffer: &mut impl Buf) -> Result<[u8; N]> {
+pub fn fixed_read<const N: usize>(buffer: &mut dyn Buf) -> Result<[u8; N]> {
     if buffer.remaining() < N {
         return Err(Error);
     }
@@ -78,11 +78,11 @@ pub fn fixed_read<const N: usize>(buffer: &mut impl Buf) -> Result<[u8; N]> {
     Ok(value)
 }
 
-pub fn fixed_skip<const N: usize>(buffer: &mut impl Buf) -> Result<()> {
+pub fn fixed_skip<const N: usize>(buffer: &mut dyn Buf) -> Result<()> {
     generic_skip(buffer, N)
 }
 
-pub fn generic_skip(buffer: &mut impl Buf, len: usize) -> Result<()> {
+pub fn generic_skip(buffer: &mut dyn Buf, len: usize) -> Result<()> {
     if buffer.remaining() < len {
         return Err(Error);
     }
@@ -90,7 +90,7 @@ pub fn generic_skip(buffer: &mut impl Buf, len: usize) -> Result<()> {
     Ok(())
 }
 
-pub fn generic_skip_many<T: BaseSerializable>(buffer: &mut impl Buf, count: usize) -> Result<()> {
+pub fn generic_skip_many<T: BaseSerializable>(buffer: &mut dyn Buf, count: usize) -> Result<()> {
     for _ in 0..count {
         T::wire_skip(buffer)?;
     }

@@ -83,7 +83,7 @@ impl Message {
 }
 
 impl BaseSerializable for Message {
-    fn wire_write(&self, buffer: &mut impl BufMut) {
+    fn wire_write(&self, buffer: &mut dyn BufMut) {
         match self {
             Self::Padding(len) => {
                 codes::PADDING.wire_write(buffer);
@@ -111,7 +111,7 @@ impl BaseSerializable for Message {
             },
         }
     }
-    fn wire_read(buffer: &mut impl Buf) -> Result<Self> {
+    fn wire_read(buffer: &mut dyn Buf) -> Result<Self> {
         use util::{nested_read, varlen_skip};
         let code = u16::wire_read(buffer)?;
         match code {
@@ -124,7 +124,7 @@ impl BaseSerializable for Message {
             _ => Err(Error),
         }
     }
-    fn wire_skip(buffer: &mut impl Buf) -> Result<()> {
+    fn wire_skip(buffer: &mut dyn Buf) -> Result<()> {
         u16::wire_skip(buffer)?;
         let _ = util::varlen_skip(buffer)?;
         Ok(())
