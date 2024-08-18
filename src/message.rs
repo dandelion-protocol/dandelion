@@ -14,7 +14,7 @@ use dandelion_wire::{
     UUID,
 };
 
-use super::{Attestation, Block, BlockID, Priority};
+use super::{Attestation, Block, BlockID, Envelope, Priority};
 
 #[derive(Clone)]
 #[repr(transparent)]
@@ -35,6 +35,7 @@ impl_display_for_printable!(Messages);
 pub enum Message {
     Padding(usize),
     Attestation(Attestation),
+    Envelope(Envelope),
     HaveBlock(Block),
     WantBlock(DesireBlockID),
     DontWantBlock(BlockID),
@@ -43,6 +44,7 @@ pub enum Message {
 pub mod codes {
     pub const PADDING: u16 = 0x0000;
     pub const ATTESTATION: u16 = 0x0001;
+    pub const ENVELOPE: u16 = 0x0002;
     pub const HAVE_BLOCK: u16 = 0x0100;
     pub const WANT_BLOCK: u16 = 0x0101;
     pub const DONT_WANT_BLOCK: u16 = 0x0102;
@@ -51,6 +53,7 @@ pub mod codes {
 pub mod names {
     pub const PADDING: &str = "Padding";
     pub const ATTESTATION: &str = "Attestation";
+    pub const ENVELOPE: &str = "Envelope";
     pub const HAVE_BLOCK: &str = "HaveBlock";
     pub const WANT_BLOCK: &str = "WantBlock";
     pub const DONT_WANT_BLOCK: &str = "DontWantBlock";
@@ -61,6 +64,7 @@ impl Message {
         match self {
             Self::Padding(_) => codes::PADDING,
             Self::Attestation(_) => codes::ATTESTATION,
+            Self::Envelope(_) => codes::ENVELOPE,
             Self::HaveBlock(_) => codes::HAVE_BLOCK,
             Self::WantBlock(_) => codes::WANT_BLOCK,
             Self::DontWantBlock(_) => codes::DONT_WANT_BLOCK,
@@ -70,6 +74,7 @@ impl Message {
         match self {
             Self::Padding(_) => names::PADDING,
             Self::Attestation(_) => names::ATTESTATION,
+            Self::Envelope(_) => names::ENVELOPE,
             Self::HaveBlock(_) => names::HAVE_BLOCK,
             Self::WantBlock(_) => names::WANT_BLOCK,
             Self::DontWantBlock(_) => names::DONT_WANT_BLOCK,
@@ -87,6 +92,10 @@ impl BaseSerializable for Message {
             Self::Attestation(att) => {
                 codes::ATTESTATION.wire_write(buffer);
                 util::nested_write(buffer, att);
+            },
+            Self::Envelope(env) => {
+                codes::ENVELOPE.wire_write(buffer);
+                util::nested_write(buffer, env);
             },
             Self::HaveBlock(block) => {
                 codes::HAVE_BLOCK.wire_write(buffer);
@@ -108,6 +117,7 @@ impl BaseSerializable for Message {
         match code {
             codes::PADDING => Ok(Self::Padding(varlen_skip(buffer)?)),
             codes::ATTESTATION => Ok(Self::Attestation(nested_read::<Attestation>(buffer)?)),
+            codes::ENVELOPE => Ok(Self::Envelope(nested_read::<Envelope>(buffer)?)),
             codes::HAVE_BLOCK => Ok(Self::HaveBlock(nested_read::<Block>(buffer)?)),
             codes::WANT_BLOCK => Ok(Self::WantBlock(nested_read::<DesireBlockID>(buffer)?)),
             codes::DONT_WANT_BLOCK => Ok(Self::DontWantBlock(nested_read::<BlockID>(buffer)?)),
@@ -127,6 +137,7 @@ impl Serializable for Message {
         u16::WIRE_SIZE.strict_add(match self {
             Self::Padding(len) => varlen_wire_size(*len),
             Self::Attestation(att) => nested_wire_size(att),
+            Self::Envelope(env) => nested_wire_size(env),
             Self::HaveBlock(block) => nested_wire_size(block),
             Self::WantBlock(desire) => nested_wire_size(desire),
             Self::DontWantBlock(id) => nested_wire_size(id),
@@ -139,6 +150,7 @@ impl Printable for Message {
         match self {
             Self::Padding(len) => write!(writer, "Padding({})", len),
             Self::Attestation(att) => write!(writer, "Attestation({})", att),
+            Self::Envelope(env) => write!(writer, "Envelope({})", env),
             Self::HaveBlock(block) => write!(writer, "HaveBlock({})", block),
             Self::WantBlock(desire) => write!(writer, "WantBlock({})", desire),
             Self::DontWantBlock(id) => write!(writer, "DontWantBlock({})", id),
