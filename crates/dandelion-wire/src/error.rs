@@ -15,5 +15,3 @@ macro_rules! error_from {
 
 error_from!(core::convert::Infallible);
 error_from!(core::num::TryFromIntError);
-error_from!(chacha20poly1305::Error);
-error_from!(ed25519_dalek::SignatureError);

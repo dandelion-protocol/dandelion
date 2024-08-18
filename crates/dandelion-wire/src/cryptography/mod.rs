@@ -11,7 +11,7 @@ use crate::{dandelion_wire, Printable, Serializable};
 pub mod cipher;
 pub mod digest;
 pub mod ecdh;
-pub mod kdf;
+pub mod hkdf;
 pub mod sig;
 
 pub trait SecretBytes<const N: usize>: Printable + Debug + Display + Zeroize + Sized {
@@ -25,6 +25,11 @@ pub trait SecretBytes<const N: usize>: Printable + Debug + Display + Zeroize + S
 
     fn from_exposed(raw: [u8; N]) -> Self {
         Self::from_box(Box::new(raw))
+    }
+
+    fn from_exposed_slice(raw: &[u8]) -> Self {
+        assert_eq!(N, raw.len());
+        Self::from_exposed(*raw.first_chunk::<N>().unwrap())
     }
 }
 
@@ -92,13 +97,13 @@ pub trait PublicBytes<const N: usize>:
 secret_bytes!(SharedSecret, raw RawSharedSecret, size SHARED_SECRET_SIZE = 32);
 
 impl SharedSecret {
-    pub fn from_dalek(dalek: x25519_dalek::SharedSecret) -> Self {
-        Self::from_exposed(dalek.to_bytes())
+    pub fn from_cryptoxide(secret: cryptoxide::x25519::SharedSecret) -> Self {
+        Self::from_exposed_slice(secret.as_ref())
     }
 }
 
-impl From<x25519_dalek::SharedSecret> for SharedSecret {
-    fn from(dalek: x25519_dalek::SharedSecret) -> Self {
-        Self::from_dalek(dalek)
+impl From<cryptoxide::x25519::SharedSecret> for SharedSecret {
+    fn from(secret: cryptoxide::x25519::SharedSecret) -> Self {
+        Self::from_cryptoxide(secret)
     }
 }

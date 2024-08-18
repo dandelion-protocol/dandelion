@@ -1,14 +1,18 @@
-use chacha20poly1305::{
-    AeadInPlace,
-    Key as ChaChaKey,
-    KeyInit,
-    Tag as ChaChaTag,
-    XChaCha20Poly1305 as ChaChaCipher,
-    XNonce as ChaChaNonce,
-};
+use cryptoxide::chacha20poly1305::{self, DecryptionResult};
 
 use super::{PublicBytes, SecretBytes, SharedSecret};
-use crate::{bytes::BytesMut, dandelion_wire, Result};
+use crate::{
+    bytes::{Buf, BufMut, BytesMut},
+    dandelion_wire,
+    Error,
+    Result,
+};
+
+const ROUNDS: usize = 20;
+
+pub type Context = chacha20poly1305::Context<ROUNDS>;
+pub type ContextEncryption = chacha20poly1305::ContextEncryption<ROUNDS>;
+pub type ContextDecryption = chacha20poly1305::ContextDecryption<ROUNDS>;
 
 secret_bytes!(Key, raw RawKey, size KEY_SIZE = 32);
 public_bytes!(Nonce, raw RawNonce, size NONCE_SIZE = 24);
@@ -19,24 +23,8 @@ impl Key {
         Self::from_box(secret.into_box())
     }
 
-    pub fn from_chacha(chacha: ChaChaKey) -> Self {
-        Self::from_exposed(chacha.into())
-    }
-
-    pub fn as_chacha(&self) -> ChaChaKey {
-        ChaChaKey::from(*self.expose())
-    }
-
-    pub fn into_chacha(self) -> ChaChaKey {
-        self.as_chacha()
-    }
-
-    pub fn as_cipher(&self) -> ChaChaCipher {
-        ChaChaCipher::new(&self.as_chacha())
-    }
-
-    pub fn into_cipher(self) -> ChaChaCipher {
-        ChaChaCipher::new(&self.as_chacha())
+    pub fn as_context(&self, nonce: Nonce) -> Context {
+        Context::new(self.expose(), nonce.as_slice())
     }
 
     pub fn encrypt_in_place(
@@ -45,22 +33,11 @@ impl Key {
         associated: Option<&[u8]>,
         buffer: &mut [u8],
     ) -> Tag {
-        Tag::from_chacha(
-            self.as_cipher()
-                .encrypt_in_place_detached(&nonce.as_chacha(), aead_ref(associated), buffer)
-                .unwrap(),
-        )
-    }
-
-    pub fn encrypt(
-        &self,
-        nonce: Nonce,
-        associated: Option<&[u8]>,
-        plaintext: &[u8],
-    ) -> (BytesMut, Tag) {
-        let mut buffer = BytesMut::from(plaintext);
-        let tag = self.encrypt_in_place(nonce, associated, &mut buffer);
-        (buffer, tag)
+        let mut context = self.as_context(nonce);
+        context.add_data(associated.unwrap_or(&[]));
+        let mut context = context.to_encryption();
+        context.encrypt_mut(buffer);
+        Tag::from_cryptoxide(context.finalize())
     }
 
     pub fn decrypt_in_place(
@@ -70,52 +47,58 @@ impl Key {
         buffer: &mut [u8],
         tag: Tag,
     ) -> Result<()> {
-        Ok(self.as_cipher().decrypt_in_place_detached(
-            &nonce.as_chacha(),
-            aead_ref(associated),
-            buffer,
-            &tag.as_chacha(),
-        )?)
+        let mut context = self.as_context(nonce);
+        context.add_data(associated.unwrap_or(&[]));
+        let mut context = context.to_decryption();
+        context.decrypt_mut(buffer);
+        match context.finalize(&tag.as_cryptoxide()) {
+            DecryptionResult::Match => Ok(()),
+            DecryptionResult::MisMatch => Err(Error),
+        }
+    }
+
+    pub fn encrypt(
+        &self,
+        nonce: Nonce,
+        associated: &mut dyn Buf,
+        plaintext: &mut dyn Buf,
+        ciphertext: &mut impl BufMut,
+    ) -> Tag {
+        let mut context = self.as_context(nonce);
+        consume_chunks(associated, |x| context.add_data(x));
+        let mut context = context.to_encryption();
+        transform_chunks(plaintext, ciphertext, |a, b| context.encrypt(a, b));
+        Tag::from_cryptoxide(context.finalize())
     }
 
     pub fn decrypt(
         &self,
         nonce: Nonce,
-        associated: Option<&[u8]>,
-        ciphertext: &[u8],
+        associated: &mut dyn Buf,
+        ciphertext: &mut dyn Buf,
+        plaintext: &mut impl BufMut,
         tag: Tag,
-    ) -> Result<BytesMut> {
-        let mut buffer = BytesMut::from(ciphertext);
-        self.decrypt_in_place(nonce, associated, &mut buffer, tag)?;
-        Ok(buffer)
-    }
-}
-
-impl Nonce {
-    pub fn from_chacha(chacha: ChaChaNonce) -> Self {
-        Self::from_exact(chacha.into())
-    }
-
-    pub fn as_chacha(&self) -> ChaChaNonce {
-        ChaChaNonce::from(*self.as_exact())
-    }
-
-    pub fn into_chacha(self) -> ChaChaNonce {
-        self.as_chacha()
+    ) -> Result<()> {
+        let mut context = self.as_context(nonce);
+        consume_chunks(associated, |x| context.add_data(x));
+        let mut context = context.to_decryption();
+        transform_chunks(ciphertext, plaintext, |a, b| context.decrypt(a, b));
+        match context.finalize(&tag.as_cryptoxide()) {
+            DecryptionResult::Match => Ok(()),
+            DecryptionResult::MisMatch => Err(Error),
+        }
     }
 }
 
 impl Tag {
-    pub fn from_chacha(chacha: ChaChaTag) -> Self {
-        Self::from_exact(chacha.into())
+    pub fn from_cryptoxide(tag: chacha20poly1305::Tag) -> Self {
+        Self::from_exact(tag.0)
     }
-
-    pub fn as_chacha(&self) -> ChaChaTag {
-        ChaChaTag::from(*self.as_exact())
+    pub fn as_cryptoxide(&self) -> chacha20poly1305::Tag {
+        chacha20poly1305::Tag(*self.as_exact())
     }
-
-    pub fn into_chacha(self) -> ChaChaTag {
-        self.as_chacha()
+    pub fn into_cryptoxide(self) -> chacha20poly1305::Tag {
+        chacha20poly1305::Tag(self.into_exact())
     }
 }
 
@@ -124,50 +107,25 @@ impl From<SharedSecret> for Key {
         Self::from_shared_secret(value)
     }
 }
-impl From<Key> for ChaChaKey {
-    fn from(value: Key) -> Self {
-        value.into_chacha()
-    }
-}
-impl From<Nonce> for ChaChaNonce {
-    fn from(value: Nonce) -> Self {
-        value.into_chacha()
-    }
-}
-impl From<&Nonce> for ChaChaNonce {
-    fn from(value: &Nonce) -> Self {
-        value.as_chacha()
-    }
-}
-impl From<Tag> for ChaChaTag {
-    fn from(value: Tag) -> Self {
-        value.into_chacha()
-    }
-}
-impl From<&Tag> for ChaChaTag {
-    fn from(value: &Tag) -> Self {
-        value.as_chacha()
-    }
-}
-impl From<ChaChaKey> for Key {
-    fn from(value: ChaChaKey) -> Self {
-        Self::from_chacha(value)
-    }
-}
-impl From<ChaChaNonce> for Nonce {
-    fn from(value: ChaChaNonce) -> Self {
-        Self::from_chacha(value)
-    }
-}
-impl From<ChaChaTag> for Tag {
-    fn from(value: ChaChaTag) -> Self {
-        Self::from_chacha(value)
+
+fn consume_chunks(input: &mut dyn Buf, mut callback: impl FnMut(&[u8])) {
+    while input.has_remaining() {
+        let chunk = input.chunk();
+        callback(chunk);
+        input.advance(chunk.len());
     }
 }
 
-fn aead_ref(associated: Option<&[u8]>) -> &[u8] {
-    match associated {
-        Some(slice) => slice,
-        None => &[],
+fn transform_chunks(
+    input: &mut dyn Buf,
+    output: &mut impl BufMut,
+    mut callback: impl FnMut(&[u8], &mut [u8]),
+) {
+    while input.has_remaining() {
+        let in_chunk = input.chunk();
+        let mut out_chunk = BytesMut::zeroed(in_chunk.len());
+        callback(in_chunk, &mut out_chunk);
+        output.put(out_chunk);
+        input.advance(in_chunk.len());
     }
 }

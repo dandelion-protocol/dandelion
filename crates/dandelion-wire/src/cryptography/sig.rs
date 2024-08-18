@@ -1,10 +1,4 @@
-use ed25519_dalek::{
-    Signature as DalekSignature,
-    Signer,
-    SigningKey as DalekPrivateKey,
-    Verifier,
-    VerifyingKey as DalekPublicKey,
-};
+use cryptoxide::ed25519;
 
 use super::{PublicBytes, SecretBytes, SharedSecret};
 use crate::{dandelion_wire, Error, Result};
@@ -18,104 +12,29 @@ impl PrivateKey {
         Self::from_box(secret.into_box())
     }
 
-    pub fn from_dalek(dalek: DalekPrivateKey) -> Self {
-        Self::from_exposed(dalek.to_bytes())
-    }
-
-    pub fn as_dalek(&self) -> DalekPrivateKey {
-        DalekPrivateKey::from_bytes(self.expose())
-    }
-
-    pub fn into_dalek(self) -> DalekPrivateKey {
-        self.as_dalek()
-    }
-
     pub fn public_key(&self) -> PublicKey {
-        PublicKey::from_dalek(self.as_dalek().verifying_key())
+        let (_, pk) = ed25519::keypair(self.expose());
+        PublicKey::from_exact(pk)
     }
 
     pub fn sign(&self, data: &[u8]) -> Signature {
-        Signature::from_dalek(self.as_dalek().sign(data))
+        let (kp, _) = ed25519::keypair(self.expose());
+        Signature::from_exact(ed25519::signature(data, &kp))
     }
 }
 
 impl PublicKey {
-    pub fn from_dalek(dalek: DalekPublicKey) -> Self {
-        Self::from_exact(*dalek.as_bytes())
-    }
-
-    pub fn try_as_dalek(&self) -> Result<DalekPublicKey> {
-        Ok(DalekPublicKey::from_bytes(self.as_exact())?)
-    }
-
-    pub fn try_into_dalek(self) -> Result<DalekPublicKey> {
-        self.try_as_dalek()
-    }
-
     pub fn verify(&self, data: &[u8], sig: Signature) -> Result<()> {
-        Ok(self.try_as_dalek()?.verify(data, &sig.into_dalek())?)
-    }
-}
-
-impl Signature {
-    pub fn from_dalek(dalek: DalekSignature) -> Self {
-        Self::from_exact(dalek.to_bytes())
-    }
-
-    pub fn as_dalek(&self) -> DalekSignature {
-        DalekSignature::from_bytes(self.as_exact())
-    }
-
-    pub fn into_dalek(self) -> DalekSignature {
-        self.as_dalek()
+        if ed25519::verify(data, self.as_exact(), sig.as_exact()) {
+            Ok(())
+        } else {
+            Err(Error)
+        }
     }
 }
 
 impl From<SharedSecret> for PrivateKey {
     fn from(value: SharedSecret) -> Self {
         Self::from_shared_secret(value)
-    }
-}
-impl From<PrivateKey> for DalekPrivateKey {
-    fn from(value: PrivateKey) -> Self {
-        value.into_dalek()
-    }
-}
-impl TryFrom<PublicKey> for DalekPublicKey {
-    type Error = Error;
-    fn try_from(value: PublicKey) -> Result<Self> {
-        value.try_into_dalek()
-    }
-}
-impl TryFrom<&PublicKey> for DalekPublicKey {
-    type Error = Error;
-    fn try_from(value: &PublicKey) -> Result<Self> {
-        value.try_as_dalek()
-    }
-}
-impl From<Signature> for DalekSignature {
-    fn from(value: Signature) -> Self {
-        value.into_dalek()
-    }
-}
-impl From<&Signature> for DalekSignature {
-    fn from(value: &Signature) -> Self {
-        value.as_dalek()
-    }
-}
-
-impl From<DalekPrivateKey> for PrivateKey {
-    fn from(value: DalekPrivateKey) -> Self {
-        Self::from_dalek(value)
-    }
-}
-impl From<DalekPublicKey> for PublicKey {
-    fn from(value: DalekPublicKey) -> Self {
-        Self::from_dalek(value)
-    }
-}
-impl From<DalekSignature> for Signature {
-    fn from(value: DalekSignature) -> Self {
-        Self::from_dalek(value)
     }
 }
