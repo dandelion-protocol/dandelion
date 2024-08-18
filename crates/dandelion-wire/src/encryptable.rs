@@ -8,16 +8,20 @@ use super::{
 };
 
 pub trait Encryptable: Typed + Serializable {
-    fn encrypt(&self, key: &Key, nonce: Nonce) -> Encrypted {
-        let associated = prepare_associated(Self::TYPE_UUID, nonce);
+    fn encrypt(&self, key: &Key, nonce: Nonce, extra: Option<&impl Serializable>) -> Encrypted {
+        let associated = prepare_associated(Self::TYPE_UUID, nonce, extra);
         let mut buffer = util::serialize(self);
         let tag = key.encrypt_in_place(nonce, Some(associated.as_ref()), &mut buffer);
         let ciphertext = Bytes::from(buffer);
         Encrypted { nonce, ciphertext, tag }
     }
 
-    fn decrypt(encrypted: &Encrypted, key: &Key) -> Result<Self> {
-        let associated = prepare_associated(Self::TYPE_UUID, encrypted.nonce);
+    fn decrypt(
+        encrypted: &Encrypted,
+        key: &Key,
+        extra: Option<&impl Serializable>,
+    ) -> Result<Self> {
+        let associated = prepare_associated(Self::TYPE_UUID, encrypted.nonce, extra);
         let mut buffer = BytesMut::from(encrypted.ciphertext.clone());
         key.decrypt_in_place(
             encrypted.nonce,
@@ -29,12 +33,21 @@ pub trait Encryptable: Typed + Serializable {
     }
 }
 
-fn prepare_associated(type_uuid: UUID, nonce: Nonce) -> Bytes {
-    const CAP: usize = UUID::WIRE_SIZE.strict_add(Nonce::WIRE_SIZE);
-    let mut buf = BytesMut::with_capacity(CAP);
-    type_uuid.wire_write(&mut buf);
-    nonce.wire_write(&mut buf);
-    Bytes::from(buf)
+fn prepare_associated(type_uuid: UUID, nonce: Nonce, extra: Option<&impl Serializable>) -> Bytes {
+    if let Some(inner) = extra {
+        let capacity = UUID::WIRE_SIZE.strict_add(Nonce::WIRE_SIZE).strict_add(inner.wire_size());
+        let mut buffer = BytesMut::with_capacity(capacity);
+        type_uuid.wire_write(&mut buffer);
+        nonce.wire_write(&mut buffer);
+        inner.wire_write(&mut buffer);
+        Bytes::from(buffer)
+    } else {
+        let capacity = UUID::WIRE_SIZE.strict_add(Nonce::WIRE_SIZE);
+        let mut buffer = BytesMut::with_capacity(capacity);
+        type_uuid.wire_write(&mut buffer);
+        nonce.wire_write(&mut buffer);
+        Bytes::from(buffer)
+    }
 }
 
 #[derive(Clone)]
