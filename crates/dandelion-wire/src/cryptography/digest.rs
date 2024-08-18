@@ -39,17 +39,17 @@ impl Digest {
     }
 }
 
-impl core::convert::From<Digest> for BlakeDigest {
+impl From<Digest> for BlakeDigest {
     fn from(value: Digest) -> Self {
         value.into_blake()
     }
 }
-impl core::convert::From<&Digest> for BlakeDigest {
+impl From<&Digest> for BlakeDigest {
     fn from(value: &Digest) -> Self {
         value.as_blake()
     }
 }
-impl core::convert::From<BlakeDigest> for Digest {
+impl From<BlakeDigest> for Digest {
     fn from(value: BlakeDigest) -> Self {
         Self::from_blake(value)
     }

@@ -30,12 +30,12 @@ impl Seed {
     }
 }
 
-impl core::convert::From<SharedSecret> for Seed {
+impl From<SharedSecret> for Seed {
     fn from(value: SharedSecret) -> Self {
         Self::from_shared_secret(value)
     }
 }
-impl core::convert::From<Seed> for Generator {
+impl From<Seed> for Generator {
     fn from(value: Seed) -> Self {
         value.into_generator()
     }

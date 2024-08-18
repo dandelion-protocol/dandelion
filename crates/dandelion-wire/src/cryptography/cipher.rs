@@ -119,47 +119,47 @@ impl Tag {
     }
 }
 
-impl core::convert::From<SharedSecret> for Key {
+impl From<SharedSecret> for Key {
     fn from(value: SharedSecret) -> Self {
         Self::from_shared_secret(value)
     }
 }
-impl core::convert::From<Key> for ChaChaKey {
+impl From<Key> for ChaChaKey {
     fn from(value: Key) -> Self {
         value.into_chacha()
     }
 }
-impl core::convert::From<Nonce> for ChaChaNonce {
+impl From<Nonce> for ChaChaNonce {
     fn from(value: Nonce) -> Self {
         value.into_chacha()
     }
 }
-impl core::convert::From<&Nonce> for ChaChaNonce {
+impl From<&Nonce> for ChaChaNonce {
     fn from(value: &Nonce) -> Self {
         value.as_chacha()
     }
 }
-impl core::convert::From<Tag> for ChaChaTag {
+impl From<Tag> for ChaChaTag {
     fn from(value: Tag) -> Self {
         value.into_chacha()
     }
 }
-impl core::convert::From<&Tag> for ChaChaTag {
+impl From<&Tag> for ChaChaTag {
     fn from(value: &Tag) -> Self {
         value.as_chacha()
     }
 }
-impl core::convert::From<ChaChaKey> for Key {
+impl From<ChaChaKey> for Key {
     fn from(value: ChaChaKey) -> Self {
         Self::from_chacha(value)
     }
 }
-impl core::convert::From<ChaChaNonce> for Nonce {
+impl From<ChaChaNonce> for Nonce {
     fn from(value: ChaChaNonce) -> Self {
         Self::from_chacha(value)
     }
 }
-impl core::convert::From<ChaChaTag> for Tag {
+impl From<ChaChaTag> for Tag {
     fn from(value: ChaChaTag) -> Self {
         Self::from_chacha(value)
     }

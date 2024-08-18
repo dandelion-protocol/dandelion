@@ -70,50 +70,50 @@ impl Signature {
     }
 }
 
-impl core::convert::From<SharedSecret> for PrivateKey {
+impl From<SharedSecret> for PrivateKey {
     fn from(value: SharedSecret) -> Self {
         Self::from_shared_secret(value)
     }
 }
-impl core::convert::From<PrivateKey> for DalekPrivateKey {
+impl From<PrivateKey> for DalekPrivateKey {
     fn from(value: PrivateKey) -> Self {
         value.into_dalek()
     }
 }
-impl core::convert::TryFrom<PublicKey> for DalekPublicKey {
+impl TryFrom<PublicKey> for DalekPublicKey {
     type Error = Error;
     fn try_from(value: PublicKey) -> Result<Self> {
         value.try_into_dalek()
     }
 }
-impl core::convert::TryFrom<&PublicKey> for DalekPublicKey {
+impl TryFrom<&PublicKey> for DalekPublicKey {
     type Error = Error;
     fn try_from(value: &PublicKey) -> Result<Self> {
         value.try_as_dalek()
     }
 }
-impl core::convert::From<Signature> for DalekSignature {
+impl From<Signature> for DalekSignature {
     fn from(value: Signature) -> Self {
         value.into_dalek()
     }
 }
-impl core::convert::From<&Signature> for DalekSignature {
+impl From<&Signature> for DalekSignature {
     fn from(value: &Signature) -> Self {
         value.as_dalek()
     }
 }
 
-impl core::convert::From<DalekPrivateKey> for PrivateKey {
+impl From<DalekPrivateKey> for PrivateKey {
     fn from(value: DalekPrivateKey) -> Self {
         Self::from_dalek(value)
     }
 }
-impl core::convert::From<DalekPublicKey> for PublicKey {
+impl From<DalekPublicKey> for PublicKey {
     fn from(value: DalekPublicKey) -> Self {
         Self::from_dalek(value)
     }
 }
-impl core::convert::From<DalekSignature> for Signature {
+impl From<DalekSignature> for Signature {
     fn from(value: DalekSignature) -> Self {
         Self::from_dalek(value)
     }

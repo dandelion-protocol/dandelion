@@ -97,7 +97,7 @@ impl SharedSecret {
     }
 }
 
-impl core::convert::From<x25519_dalek::SharedSecret> for SharedSecret {
+impl From<x25519_dalek::SharedSecret> for SharedSecret {
     fn from(dalek: x25519_dalek::SharedSecret) -> Self {
         Self::from_dalek(dalek)
     }

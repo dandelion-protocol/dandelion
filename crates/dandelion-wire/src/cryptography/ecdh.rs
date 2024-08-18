@@ -49,32 +49,32 @@ impl PublicKey {
     }
 }
 
-impl core::convert::From<SharedSecret> for PrivateKey {
+impl From<SharedSecret> for PrivateKey {
     fn from(value: SharedSecret) -> Self {
         Self::from_shared_secret(value)
     }
 }
-impl core::convert::From<PrivateKey> for DalekPrivateKey {
+impl From<PrivateKey> for DalekPrivateKey {
     fn from(value: PrivateKey) -> Self {
         value.into_dalek()
     }
 }
-impl core::convert::From<PublicKey> for DalekPublicKey {
+impl From<PublicKey> for DalekPublicKey {
     fn from(value: PublicKey) -> Self {
         value.into_dalek()
     }
 }
-impl core::convert::From<&PublicKey> for DalekPublicKey {
+impl From<&PublicKey> for DalekPublicKey {
     fn from(value: &PublicKey) -> Self {
         value.as_dalek()
     }
 }
-impl core::convert::From<DalekPrivateKey> for PrivateKey {
+impl From<DalekPrivateKey> for PrivateKey {
     fn from(value: DalekPrivateKey) -> Self {
         Self::from_dalek(value)
     }
 }
-impl core::convert::From<DalekPublicKey> for PublicKey {
+impl From<DalekPublicKey> for PublicKey {
     fn from(value: DalekPublicKey) -> Self {
         Self::from_dalek(value)
     }
