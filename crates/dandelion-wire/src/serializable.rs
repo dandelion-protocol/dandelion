@@ -105,6 +105,20 @@ impl<T: Serializable> Serializable for Vec<T> {
     }
 }
 
+impl BaseSerializable for () {
+    fn wire_write(&self, _: &mut impl BufMut) {}
+    fn wire_read(_: &mut impl Buf) -> Result<Self> {
+        Ok(())
+    }
+    fn wire_skip(_: &mut impl Buf) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl FixedSizeSerializable for () {
+    const WIRE_SIZE: usize = 0;
+}
+
 impl<const N: usize> BaseSerializable for [u8; N] {
     fn wire_write(&self, buffer: &mut impl BufMut) {
         util::fixed_write::<N>(buffer, self)
