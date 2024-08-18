@@ -6,7 +6,7 @@ use alloc::{
 use bytes::{Bytes, BytesMut};
 use zeroize::{DefaultIsZeroes, Zeroize};
 
-use super::*;
+use crate::{dandelion_wire, Printable, Serializable};
 
 pub mod cipher;
 pub mod digest;

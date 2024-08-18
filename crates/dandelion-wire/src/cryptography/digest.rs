@@ -1,7 +1,7 @@
 use blake2s_simd::{Hash as BlakeDigest, Params as BlakeParams, State as BlakeState};
-use bytes::Buf;
 
-use super::*;
+use super::PublicBytes;
+use crate::{bytes::Buf, dandelion_wire, UUID};
 
 public_bytes!(Digest, raw RawDigest, size DIGEST_SIZE = 32);
 

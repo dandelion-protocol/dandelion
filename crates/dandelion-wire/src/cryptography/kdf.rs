@@ -1,6 +1,7 @@
 use alloc::boxed::Box;
 
-use super::*;
+use super::{RawSharedSecret, SecretBytes, SharedSecret};
+use crate::dandelion_wire;
 
 type Generator = hkdf::Hkdf<sha2::Sha256>;
 

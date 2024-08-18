@@ -1,6 +1,4 @@
-use bytes::Buf;
-
-use super::*;
+use super::{bytes::Buf, dandelion_wire, BaseSerializable, Error, Result};
 
 public_bytes!(UUID, raw RawUUID, size UUID_SIZE = 16);
 

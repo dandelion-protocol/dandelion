@@ -6,7 +6,8 @@ use ed25519_dalek::{
     VerifyingKey as DalekPublicKey,
 };
 
-use super::*;
+use super::{PublicBytes, SecretBytes, SharedSecret};
+use crate::{dandelion_wire, Error, Result};
 
 secret_bytes!(PrivateKey, raw RawPrivateKey, size PRIVATE_KEY_SIZE = 32);
 public_bytes!(PublicKey, raw RawPublicKey, size PUBLIC_KEY_SIZE = 32);

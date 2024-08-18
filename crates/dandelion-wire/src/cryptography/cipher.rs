@@ -1,4 +1,3 @@
-use bytes::BytesMut;
 use chacha20poly1305::{
     AeadInPlace,
     Key as ChaChaKey,
@@ -8,7 +7,8 @@ use chacha20poly1305::{
     XNonce as ChaChaNonce,
 };
 
-use super::*;
+use super::{PublicBytes, SecretBytes, SharedSecret};
+use crate::{bytes::BytesMut, dandelion_wire, Result};
 
 secret_bytes!(Key, raw RawKey, size KEY_SIZE = 32);
 public_bytes!(Nonce, raw RawNonce, size NONCE_SIZE = 24);

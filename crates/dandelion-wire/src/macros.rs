@@ -125,18 +125,22 @@ macro_rules! public_bytes {
 
         impl dandelion_wire::zeroize::DefaultIsZeroes for $ty {}
 
+        #[allow(unused_imports)]
         impl dandelion_wire::BaseSerializable for $ty {
             fn wire_write(&self, buffer: &mut impl dandelion_wire::bytes::BufMut) {
+                use dandelion_wire::{BaseSerializable, PublicBytes};
                 self.as_exact().wire_write(buffer);
             }
             fn wire_read(
                 buffer: &mut impl dandelion_wire::bytes::Buf,
             ) -> dandelion_wire::Result<Self> {
-                Ok(Self($raw::wire_read(buffer)?))
+                use dandelion_wire::{BaseSerializable, PublicBytes};
+                Ok(Self::from_exact($raw::wire_read(buffer)?))
             }
             fn wire_skip(
                 buffer: &mut impl dandelion_wire::bytes::Buf,
             ) -> dandelion_wire::Result<()> {
+                use dandelion_wire::BaseSerializable;
                 $raw::wire_skip(buffer)
             }
         }
@@ -145,8 +149,10 @@ macro_rules! public_bytes {
             const WIRE_SIZE: usize = $const;
         }
 
+        #[allow(unused_imports)]
         impl dandelion_wire::Printable for $ty {
             fn print(&self, writer: &mut dyn ::alloc::fmt::Write) -> ::alloc::fmt::Result {
+                use dandelion_wire::PublicBytes;
                 dandelion_wire::printable::print_public_bytes(writer, self.as_slice())
             }
         }
@@ -154,7 +160,6 @@ macro_rules! public_bytes {
         impl_debug_for_printable!($ty);
         impl_display_for_printable!($ty);
 
-        #[allow(unused_imports)]
         impl ::core::cmp::PartialEq for $ty {
             fn eq(&self, rhs: &Self) -> bool {
                 use dandelion_wire::PublicBytes;
@@ -164,86 +169,114 @@ macro_rules! public_bytes {
 
         impl ::core::cmp::Eq for $ty {}
 
+        #[allow(unused_imports)]
         impl ::core::convert::AsMut<$raw> for $ty {
             fn as_mut(&mut self) -> &mut $raw {
-                &mut self.0
+                use dandelion_wire::PublicBytes;
+                self.as_exact_mut()
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::AsMut<[u8]> for $ty {
             fn as_mut(&mut self) -> &mut [u8] {
-                &mut self.0
+                use dandelion_wire::PublicBytes;
+                self.as_slice_mut()
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::AsRef<$raw> for $ty {
             fn as_ref(&self) -> &$raw {
-                &self.0
+                use dandelion_wire::PublicBytes;
+                self.as_exact()
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::AsRef<[u8]> for $ty {
             fn as_ref(&self) -> &[u8] {
-                &self.0
+                use dandelion_wire::PublicBytes;
+                self.as_slice()
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<$raw> for $ty {
             fn from(raw: $raw) -> Self {
+                use dandelion_wire::PublicBytes;
                 Self::from_exact(raw)
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<&$raw> for $ty {
             fn from(raw: &$raw) -> Self {
+                use dandelion_wire::PublicBytes;
                 Self::from_exact(*raw)
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<&[u8]> for $ty {
             fn from(slice: &[u8]) -> Self {
+                use dandelion_wire::PublicBytes;
                 Self::from_slice(slice)
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<dandelion_wire::bytes::Bytes> for $ty {
             fn from(bytes: dandelion_wire::bytes::Bytes) -> Self {
+                use dandelion_wire::PublicBytes;
                 Self::from_bytes(&bytes)
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<&dandelion_wire::bytes::Bytes> for $ty {
             fn from(bytes: &dandelion_wire::bytes::Bytes) -> Self {
+                use dandelion_wire::PublicBytes;
                 Self::from_bytes(bytes)
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<dandelion_wire::bytes::BytesMut> for $ty {
             fn from(bytes: dandelion_wire::bytes::BytesMut) -> Self {
+                use dandelion_wire::PublicBytes;
                 Self::from_bytes_mut(&bytes)
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<&dandelion_wire::bytes::BytesMut> for $ty {
             fn from(bytes: &dandelion_wire::bytes::BytesMut) -> Self {
+                use dandelion_wire::PublicBytes;
                 Self::from_bytes_mut(bytes)
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<$ty> for $raw {
             fn from(value: $ty) -> Self {
+                use dandelion_wire::PublicBytes;
                 value.into_exact()
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<$ty> for dandelion_wire::bytes::Bytes {
             fn from(value: $ty) -> Self {
+                use dandelion_wire::PublicBytes;
                 value.as_bytes()
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<$ty> for dandelion_wire::bytes::BytesMut {
             fn from(value: $ty) -> Self {
+                use dandelion_wire::PublicBytes;
                 value.as_bytes_mut()
             }
         }
