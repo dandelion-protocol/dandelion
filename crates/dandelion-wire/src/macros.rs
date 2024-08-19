@@ -68,6 +68,30 @@ macro_rules! secret_bytes {
             }
         }
 
+        #[allow(unused_imports)]
+        impl dandelion_wire::BaseSerializable for $ty {
+            fn wire_write(&self, buffer: &mut dyn dandelion_wire::bytes::BufMut) {
+                use dandelion_wire::{BaseSerializable, SecretBytes};
+                self.expose().wire_write(buffer);
+            }
+            fn wire_read(
+                buffer: &mut dyn dandelion_wire::bytes::Buf,
+            ) -> dandelion_wire::Result<Self> {
+                use dandelion_wire::{BaseSerializable, SecretBytes};
+                Ok(Self::from_exposed($raw::wire_read(buffer)?))
+            }
+            fn wire_skip(
+                buffer: &mut dyn dandelion_wire::bytes::Buf,
+            ) -> dandelion_wire::Result<()> {
+                use dandelion_wire::BaseSerializable;
+                $raw::wire_skip(buffer)
+            }
+        }
+
+        impl dandelion_wire::FixedSizeSerializable for $ty {
+            const WIRE_SIZE: usize = $const;
+        }
+
         impl dandelion_wire::Printable for $ty {
             fn print(&self, writer: &mut dyn ::alloc::fmt::Write) -> ::alloc::fmt::Result {
                 dandelion_wire::printable::print_secret_bytes(writer)
@@ -77,14 +101,18 @@ macro_rules! secret_bytes {
         impl_debug_for_printable!($ty);
         impl_display_for_printable!($ty);
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<$raw> for $ty {
             fn from(raw: $raw) -> Self {
+                use dandelion_wire::SecretBytes;
                 Self::from_exposed(raw)
             }
         }
 
+        #[allow(unused_imports)]
         impl ::core::convert::From<::alloc::boxed::Box<$raw>> for $ty {
             fn from(boxed: ::alloc::boxed::Box<$raw>) -> Self {
+                use dandelion_wire::SecretBytes;
                 Self::from_box(boxed)
             }
         }

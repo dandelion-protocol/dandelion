@@ -2,8 +2,8 @@ use alloc::boxed::Box;
 
 use cryptoxide::{blake2s, hkdf};
 
-use super::{RawSharedSecret, SecretBytes, SharedSecret};
-use crate::dandelion_wire;
+use super::{RawSharedSecret, SharedSecret};
+use crate::{dandelion_wire, SecretBytes};
 type Context = blake2s::Blake2s;
 
 secret_bytes!(Seed, raw RawSeed, size SEED_SIZE = 32);

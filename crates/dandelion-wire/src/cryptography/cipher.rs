@@ -1,11 +1,13 @@
 use cryptoxide::chacha20poly1305::{self, DecryptionResult};
 
-use super::{PublicBytes, SecretBytes, SharedSecret};
+use super::SharedSecret;
 use crate::{
     bytes::{Buf, BufMut, BytesMut},
     dandelion_wire,
     Error,
+    PublicBytes,
     Result,
+    SecretBytes,
 };
 
 const ROUNDS: usize = 20;

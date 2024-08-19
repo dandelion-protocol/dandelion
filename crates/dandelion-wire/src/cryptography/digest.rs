@@ -1,7 +1,6 @@
 use cryptoxide::blake2s;
 
-use super::PublicBytes;
-use crate::{bytes::Buf, dandelion_wire, UUID};
+use crate::{bytes::Buf, dandelion_wire, PublicBytes, UUID};
 
 pub type Context = blake2s::Blake2s;
 

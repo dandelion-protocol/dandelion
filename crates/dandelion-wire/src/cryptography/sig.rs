@@ -1,7 +1,7 @@
 use cryptoxide::ed25519;
 
-use super::{PublicBytes, SecretBytes, SharedSecret};
-use crate::{dandelion_wire, Error, Result};
+use super::SharedSecret;
+use crate::{dandelion_wire, Error, PublicBytes, Result, SecretBytes};
 
 secret_bytes!(PrivateKey, raw RawPrivateKey, size PRIVATE_KEY_SIZE = 32);
 public_bytes!(PublicKey, raw RawPublicKey, size PUBLIC_KEY_SIZE = 32);
