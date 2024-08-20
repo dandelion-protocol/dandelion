@@ -1,8 +1,6 @@
-use alloc::{
-    fmt::{Result, Write},
-    string::String,
-    vec::Vec,
-};
+use alloc::fmt::{Result, Write};
+use alloc::string::String;
+use alloc::vec::Vec;
 use core::str::from_utf8;
 
 pub trait Printable {

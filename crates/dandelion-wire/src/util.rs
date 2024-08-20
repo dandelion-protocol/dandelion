@@ -1,11 +1,5 @@
-use super::{
-    bytes::{Buf, BufMut, Bytes, BytesMut},
-    BaseSerializable,
-    Error,
-    FixedSizeSerializable,
-    Result,
-    Serializable,
-};
+use super::bytes::{Buf, BufMut, Bytes, BytesMut};
+use super::{BaseSerializable, Error, FixedSizeSerializable, Result, Serializable};
 
 pub fn serialize(value: &impl Serializable) -> BytesMut {
     let mut buffer = BytesMut::with_capacity(value.wire_size());

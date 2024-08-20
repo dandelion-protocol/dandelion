@@ -1,4 +1,5 @@
-use dandelion_wire::{cryptography::digest::Digest, PublicBytes};
+use dandelion_wire::cryptography::digest::Digest;
+use dandelion_wire::PublicBytes;
 
 public_bytes!(Block, raw RawBlock, size BLOCK_SIZE = 1 << 20);
 

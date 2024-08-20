@@ -1,8 +1,8 @@
 use alloc::fmt;
 
+use super::bytes::{Bytes, BytesMut};
+use super::cryptography::sig::{PrivateKey, PublicKey, Signature};
 use super::{
-    bytes::{Bytes, BytesMut},
-    cryptography::sig::{PrivateKey, PublicKey, Signature},
     dandelion_wire,
     util,
     BaseSerializable,

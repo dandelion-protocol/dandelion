@@ -1,8 +1,8 @@
 use alloc::fmt;
 
+use super::bytes::{Bytes, BytesMut};
+use super::cryptography::cipher::{Key, Nonce, Tag};
 use super::{
-    bytes::{Bytes, BytesMut},
-    cryptography::cipher::{Key, Nonce, Tag},
     dandelion_wire,
     util,
     BaseSerializable,

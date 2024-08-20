@@ -1,11 +1,7 @@
 use alloc::vec::Vec;
 
-use super::{
-    bytes::{Buf, BufMut, Bytes, BytesMut},
-    util,
-    Error,
-    Result,
-};
+use super::bytes::{Buf, BufMut, Bytes, BytesMut};
+use super::{util, Error, Result};
 
 pub trait BaseSerializable: Sized {
     fn wire_write(&self, buffer: &mut dyn BufMut);

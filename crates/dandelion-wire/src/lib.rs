@@ -7,7 +7,8 @@ mod macros;
 extern crate alloc;
 pub extern crate bytes;
 pub extern crate zeroize;
-use alloc::{boxed::Box, fmt};
+use alloc::boxed::Box;
+use alloc::fmt;
 
 use crate as dandelion_wire;
 

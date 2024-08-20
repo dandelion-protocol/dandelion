@@ -1,7 +1,8 @@
-use alloc::{fmt, vec::Vec};
+use alloc::fmt;
+use alloc::vec::Vec;
 
+use dandelion_wire::bytes::{Buf, BufMut};
 use dandelion_wire::{
-    bytes::{Buf, BufMut},
     util,
     BaseSerializable,
     Encryptable,

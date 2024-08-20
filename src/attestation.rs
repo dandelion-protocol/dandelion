@@ -1,4 +1,5 @@
-use dandelion_wire::{cryptography::sig::PublicKey, Signable, Typed, UUID};
+use dandelion_wire::cryptography::sig::PublicKey;
+use dandelion_wire::{Signable, Typed, UUID};
 
 use super::{Claims, Entity, Instant};
 

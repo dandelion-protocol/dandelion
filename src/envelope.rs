@@ -1,4 +1,5 @@
-use dandelion_wire::{cryptography::sig::PublicKey, Encrypted, Signable, Typed, UUID};
+use dandelion_wire::cryptography::sig::PublicKey;
+use dandelion_wire::{Encrypted, Signable, Typed, UUID};
 
 use super::Entity;
 

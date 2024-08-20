@@ -1,6 +1,6 @@
 group_imports = "StdExternalCrate"
 imports_layout = "HorizontalVertical"
-imports_granularity = "Crate"
+imports_granularity = "Module"
 use_small_heuristics = "Max"
 empty_item_single_line = true
 match_block_trailing_comma = true
