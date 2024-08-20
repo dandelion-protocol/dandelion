@@ -6,6 +6,9 @@ extern crate alloc;
 #[macro_use]
 extern crate dandelion_wire;
 
+#[macro_use]
+mod macros;
+
 pub mod attestation;
 pub mod block;
 pub mod claim;
