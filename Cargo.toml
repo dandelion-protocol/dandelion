@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/*"]
+members = ["crates/*","agents/*"]
 
 [workspace.package]
 edition = "2021"
@@ -15,6 +15,8 @@ license = "GPL-3.0-only OR Hippocratic-2.1"
 #dandelion-host-wit = { path = "crates/dandelion-host-wit", version = "0.1.0" }
 #dandelion-types = { path = "crates/dandelion-types", version = "0.1.0" }
 dandelion-wire = { path = "crates/dandelion-wire", version = "0.1.0" }
+dandelion-agent-lib = { path = "crates/dandelion-agent-lib", version = "0.1.0" }
+dandelion-agent-host = { path = "crates/dandelion-agent-host", version = "0.1.0" }
 bytes = { version = "1.7.1", default-features = false }
 proc-macro2 = { version = "1.0.86" }
 prost = { version = "0.13.1", default-features = false, features = ["derive"] }
@@ -26,13 +28,21 @@ syn = { version = "2.0.72" }
 wasmtime = { version = "23.0.1", default-features = false, features = ["component-model", "runtime", "cranelift", "async", "threads"] }
 wit-bindgen = { version = "0.28.0" }
 zeroize = { version = "1.8.1", default-features = false }
+anyhow = { version = "1.0.86" }
+linkme = { version = "0.3.28" }
+dlopen = { version = "0.1.8" }
+dlopen_derive = { version = "0.1.4" }
+constant_time_eq = { version = "0.3.0", default-features = false }
+cryptoxide = { version = "0.4.4", default-features = false }
+gethostname = { version = "0.5.0" }
 
 [profile.release]
 codegen-units = 1
 opt-level = "s"
-debug = false
-strip = true
 lto = true
+
+[profile.release.package."*"]
+strip = true
 
 [package]
 name = "dandelion"

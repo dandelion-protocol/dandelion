@@ -1,0 +1,13 @@
+[package]
+name = "dandelion-agent-lib"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[features]
+export = []
+
+[dependencies]
+anyhow.workspace = true
+linkme.workspace = true

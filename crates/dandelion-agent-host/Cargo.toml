@@ -1,0 +1,11 @@
+[package]
+name = "dandelion-agent-host"
+edition.workspace = true
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+dandelion-agent-lib.workspace = true
+dlopen.workspace = true
+dlopen_derive.workspace = true

@@ -8,5 +8,5 @@ license.workspace = true
 [dependencies]
 bytes.workspace = true
 zeroize.workspace = true
-constant_time_eq = { version = "0.3.0", default-features = false }
-cryptoxide = { version = "0.4.4", default-features = false, features = ["blake2", "chacha", "poly1305", "ed25519", "x25519", "hkdf"] }
+constant_time_eq.workspace = true
+cryptoxide = { workspace = true, features = ["blake2", "chacha", "poly1305", "ed25519", "x25519", "hkdf"] }
